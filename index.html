@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta Regresiva Personalizable</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4a90e2, #63b3ed);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .countdown-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .message {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .timer {
+            font-size: 60px;
+            font-weight: bold;
+            color: #e74c3c;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        .controls {
+            margin-top: 20px;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(to right, #e74c3c, #e67e22);
+        }
+        
+        .btn-pause {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .timer {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Cuenta Regresiva Personalizable</h1>
+        
+        <div class="input-group">
+            <label for="minutes">Minutos:</label>
+            <input type="number" id="minutes" min="1" max="300" placeholder="Ingresa los minutos" value="5">
+        </div>
+        
+        <div class="input-group">
+            <label for="messageType">Tipo de mensaje:</label>
+            <select id="messageType">
+                <option value="Volvemos en">Volvemos en</option>
+                <option value="Empezamos en">Empezamos en</option>
+            </select>
+        </div>
+        
+        <button id="startBtn">Iniciar Cuenta Regresiva</button>
+        
+        <div class="countdown-container" id="countdownContainer">
+            <div class="message" id="messageDisplay"></div>
+            <div class="timer" id="timerDisplay">05:00</div>
+            
+            <div class="controls">
+                <button id="pauseBtn" class="btn-pause">Pausar</button>
+                <button id="resetBtn" class="btn-reset">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const minutesInput = document.getElementById('minutes');
+            const messageTypeSelect = document.getElementById('messageType');
+            const startBtn = document.getElementById('startBtn');
+            const countdownContainer = document.getElementById('countdownContainer');
+            const messageDisplay = document.getElementById('messageDisplay');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            let countdown;
+            let totalSeconds = 0;
+            let isPaused = false;
+            let remainingSeconds = 0;
+            
+            // Función para iniciar la cuenta regresiva
+            function startCountdown() {
+                const minutes = parseInt(minutesInput.value);
+                const messageType = messageTypeSelect.value;
+                
+                if (isNaN(minutes) || minutes <= 0) {
+                    alert('Por favor, ingresa una cantidad válida de minutos.');
+                    return;
+                }
+                
+                totalSeconds = minutes * 60;
+                remainingSeconds = totalSeconds;
+                
+                // Mostrar el mensaje personalizado
+                messageDisplay.textContent = messageType;
+                
+                // Ocultar el formulario y mostrar la cuenta regresiva
+                document.querySelectorAll('.input-group, #startBtn').forEach(el => {
+                    el.style.display = 'none';
+                });
+                countdownContainer.style.display = 'block';
+                
+                // Iniciar el temporizador
+                isPaused = false;
+                runCountdown();
+            }
+            
+            // Función que ejecuta la cuenta regresiva
+            function runCountdown() {
+                if (isPaused) return;
+                
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = remainingSeconds % 60;
+                
+                // Formatear el tiempo para mostrar siempre dos dígitos
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (remainingSeconds > 0) {
+                    remainingSeconds--;
+                    countdown = setTimeout(runCountdown, 1000);
+                } else {
+                    // Cuando la cuenta regresiva termina
+                    timerDisplay.style.color = '#2ecc71';
+                    timerDisplay.textContent = '00:00';
+                    pauseBtn.disabled = true;
+                }
+            }
+            
+            // Función para pausar/reanudar la cuenta regresiva
+            function togglePause() {
+                isPaused = !isPaused;
+                
+                if (isPaused) {
+                    clearTimeout(countdown);
+                    pauseBtn.textContent = 'Reanudar';
+                } else {
+                    pauseBtn.textContent = 'Pausar';
+                    runCountdown();
+                }
+            }
+            
+            // Función para reiniciar la cuenta regresiva
+            function resetCountdown() {
+                clearTimeout(countdown);
+                
+                // Restaurar la vista inicial
+                document.querySelectorAll('.input-group, #startBtn').forEach(el => {
+                    el.style.display = 'block';
+                });
+                countdownContainer.style.display = 'none';
+                
+                // Restablecer valores
+                timerDisplay.style.color = '#e74c3c';
+                pauseBtn.textContent = 'Pausar';
+                pauseBtn.disabled = false;
+                isPaused = false;
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startCountdown);
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetCountdown);
+        });
+    </script>
+</body>
+</html>
